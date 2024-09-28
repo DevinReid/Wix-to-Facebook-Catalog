@@ -4,6 +4,13 @@ import requests
 from googlesearch import search
 from bs4 import BeautifulSoup
 
+
+product_urls = {'Cult of Mathilda T-Shirt' : 'https://www.fenclawandfaund.com/product-page/cult-of-mathilda-t-shirt',
+                "Captain Fenclaw's Tiger Button Down" :'https://www.fenclawandfaund.com/product-page/the-cat-captain-s-longsleeve-shirt-elven-cut',
+                "Swordfish Sailor's Topsail Trousers" : 'https://www.fenclawandfaund.com/product-page/swordfish-sailor-s-slacks',
+                "Swordfish Sailor's Overcoat": "https://www.fenclawandfaund.com/product-page/quartermaster-s-overcoat",
+                "Fiona Faund's Tiger Palazzo Pants" : "https://www.fenclawandfaund.com/product-page/fiona-faund-s-pallazo"}
+
 def transform_wix_to_facebook(wix_csv_path, output_csv_path, db_path):
     # Load the Wix CSV file
     wix_df = pd.read_csv(wix_csv_path)
@@ -20,7 +27,8 @@ def transform_wix_to_facebook(wix_csv_path, output_csv_path, db_path):
     fb_df['condition'] = 'new'  # Assuming all items are new; adjust as necessary
     fb_df['price'] = wix_df['price'].where(wix_df['fieldType'] == 'Product', None)
     fb_df['price'] = fb_df['price'].ffill()
-    fb_df['link'] = wix_df['productImageUrl']  # Adjust if you have a specific product link
+    fb_df['link'] = fb_df['title'].apply(search_product_url) # Apply the function to each title
+
     fb_df['image_link'] = wix_df['productImageUrl']  # Adjust if you have a specific image URL
     fb_df['brand'] = wix_df['brand']
     fb_df['google_product_category'] = 'Your_Category'  # Specify your category here
@@ -67,15 +75,15 @@ def search_product_url(product_name):
             print(f"Found results: {results}")  # Debug: Print found results
             return results[0]  # Return the first result or None
         else:
-            print("No results found.")
-            return None
+           print("No results found, checking fallback URL.")
+            # Check if the product_name is in the fallback dictionary
+           return product_urls.get(product_name, None)
     except Exception as e:
         print(f"Error fetching search results for {product_name}: {e}")
         return None
 
 
-result = search_product_url('Cult of Mathilda Apprentices handbook')
-print(result)
+
 
 # Example usage
 transform_wix_to_facebook(r'C:\Users\Dreid\Desktop\Brain\Projects\Wix to Facebook conversion\output_catalog.csv', r'C:\Users\Dreid\Desktop\Brain\Projects\Wix to Facebook conversion\facebook_output_products.csv', r'C:\Users\Dreid\Desktop\Brain\Projects\Wix to Facebook conversion\facebook_products.db')
